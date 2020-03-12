@@ -1,0 +1,7 @@
+#!**/.config/ranger/
+#ignore everything
+/*
+/*/
+
+#but these
+!.gitignore

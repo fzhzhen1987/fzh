@@ -1,0 +1,12 @@
+[user]
+	email = fzhzhen1987@yahoo.co.jp
+	name = fzh
+[color]
+	ui = auto
+[core]
+	pager = less
+	editor = emacs -nw
+	quotepath = false
+[pack]
+	threads = 4
+
