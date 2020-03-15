@@ -1,6 +1,7 @@
 [global_config]
   always_on_top = True
   suppress_multiple_term_dialog = True
+  tab_position = bottom
   title_font = DejaVu Sans Oblique Semi-Condensed 9
 [keybindings]
   broadcast_group = <Alt>a
@@ -28,7 +29,8 @@
     copy_on_selection = True
     cursor_color = "#c4a000"
     cursor_color_fg = False
-    font = WenQuanYi Micro Hei Mono 11
+    font = 文泉驿等宽微米黑 13
     foreground_color = "#ffffff"
     show_titlebar = False
     split_to_group = True
+    use_system_font = False
