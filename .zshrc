@@ -3,6 +3,7 @@
 
 # Path to your oh-my-zsh installation.
 export ZSH=~/.oh-my-zsh
+export RANGER_LOAD_DEFAULT_RC="false"
 
 export LANG=en_US.UTF-8
 # Set name of the theme to load --- if set to "random", it will
