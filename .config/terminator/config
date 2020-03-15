@@ -1,0 +1,34 @@
+[global_config]
+  always_on_top = True
+  suppress_multiple_term_dialog = True
+  title_font = DejaVu Sans Oblique Semi-Condensed 9
+[keybindings]
+  broadcast_group = <Alt>a
+  go_next = disable
+  go_prev = disable
+  next_profile = disable
+  next_tab = <Primary><Shift>n
+  prev_tab = <Primary><Shift>p
+[layouts]
+  [[default]]
+    [[[child1]]]
+      parent = window0
+      type = Terminal
+      profile = default
+    [[[window0]]]
+      parent = ""
+      type = Window
+[plugins]
+[profiles]
+  [[default]]
+    allow_bold = False
+    background_color = "#300a24"
+    background_darkness = 0.8
+    background_type = transparent
+    copy_on_selection = True
+    cursor_color = "#c4a000"
+    cursor_color_fg = False
+    font = WenQuanYi Micro Hei Mono 11
+    foreground_color = "#ffffff"
+    show_titlebar = False
+    split_to_group = True
