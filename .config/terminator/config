@@ -29,7 +29,7 @@
     copy_on_selection = True
     cursor_color = "#c4a000"
     cursor_color_fg = False
-    font = 文泉驿等宽微米黑 13
+    font = SauceCodePro Nerd Font Mono Heavy 13
     foreground_color = "#ffffff"
     show_titlebar = False
     split_to_group = True
