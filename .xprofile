@@ -1,6 +1,19 @@
+#!/bin/bash
 export GTK_IM_MODULE=fcitx
 export QT_IM_MODULE=fcitx
 export XMODIFIERS="@im=fcitx"
 
 export LANG=zh_CN.UTF-8
 LC_ALL=
+
+#设定小红点速度
+# obtain TrackPoint ID from xinput list
+TP_ID=`xinput list | grep TrackPoint | cut -f 2 | grep -Eo '[0-9]{1,}'`
+
+if [ -n "$TP_ID" ]; then
+    # obtain properties from xinput list-props "$TP_ID"
+    AS_ID=$(xinput list-props "$TP_ID" | grep 'Accel Speed (' | cut -f 2 | grep -Eo '[0-9]{1,}')
+
+    # set the speed you want
+    xinput set-prop "$TP_ID" "$AS_ID" -0.005
+fi
