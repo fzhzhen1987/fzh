@@ -1,0 +1,672 @@
+* 做arch linux 启动盘
+  #+BEGIN_SRC sh
+dd bs=4M if=/path/to/archlinux.iso of=/dev/sdx status=progress && sync
+df -h
+  #+END_SRC
+* U盘启动后,更改运行中的linux文件系统大小
+  在U盘安装arch中将安装目录变为2g
+
+  #+BEGIN_SRC sh
+mount -o remount,size=2G /run/archiso/cowspace
+  #+END_SRC
+* 连接网络使用ssh安装系统
+  #+BEGIN_SRC sh
+loadkeys jp106
+wifi-menu
+passwd
+systemctl start sshd
+ip addr
+  #+END_SRC
+* 接下来的必要操作是在远程主机上完成
+** 1.时间设置
+   #+BEGIN_SRC sh
+timedatectl set-ntp true
+timedatectl status
+   #+END_SRC
+** 2.制作分区
+*** 查看当前磁盘分区,uuid,分区信息
+    lsblk
+    blkid /dev/mmcblk0p1
+    parted /dev/mmcblk0 print
+    fdisk -l
+*** 创建分区表
+    #+BEGIN_SRC sh
+# 进入parted
+parted /dev/mmcblk0p1
+#(parted)命令行执行
+mktable    //建立分区表
+#New disk label type
+gpt        //gpt格式
+quit
+    #+END_SRC
+*** 创建分区
+    #+BEGIN_SRC sh
+cfdisk /dev/mmcblk0
+#new
+500m  efi
+#选择type
+EFI system
+#剩余空间全部给跟目录
+Linux filesystem
+#write
+sure?yes
+quit
+    #+END_SRC
+*** 格式化分区
+    mkfs.vfat -F32 /dev/mmcblk0p1
+    mkfs.ext4 -O "^has_journal" -m 0 /dev/mmcblk0p2 (禁用日志以及预留空间)
+
+    [option]
+    mkfs.vfat -F32 /dev/nvme0n1p1
+    mkfs.ext4 -O "^has_journal" -m 0 /dev/mmcblk0p1
+    mkfs.ext4 /dev/nvme0n1p2
+*** [OPTION]
+    mkswap -f /dev/swap分区
+    swapon /dev/swap分区  打开swap分区
+** 3.挂载分区
+   mount /dev/mmcblk0p2 /mnt
+   mkdir -p /mnt/boot/
+   mount /dev/mmcblk0p1 /mnt/boot/
+
+   [option]
+   mount /dev/mmcblk0p1 /mnt
+   mkdir -p /mnt/boot/
+   mount /dev/nvme0n1p1 /mnt/boot/
+   mkdir -p /mnt/home/
+   mount /dev/nvme0n1p2 /mnt/home/
+** 4.使用github中的etc设置
+*** 部署前的准备:修改下载地址
+    nano /etc/pacman.d/mirrorlist
+    C-w 查找 C-k 剪切 C-u 粘贴 C-x 退出保存
+*** 安装git tig
+    pacman -Syy
+    pacman -S git tig
+    git clone https://github.com/fzhzhen1987/etc.git /mnt/etc
+** 5.部署基本系统
+   pacstrap -i /mnt base linux linux-firmware base-devel linux-headers emacs git tig zsh terminator
+** 6.生成fstab
+   genfstab -U -p /mnt >> /mnt/etc/fstab
+*** 确认fstab信息
+    cat /mnt/etc/fstab
+** 7.切换到新系统的必要操作以及包安装
+   arch-chroot /mnt /bin/bash
+*** 设定root密码
+    passwd
+*** 键盘设定
+    echo 'KEYMAP=jp106' > /etc/vconsole.conf
+    或者
+    echo 'KEYMAP=uk' > /etc/vconsole.conf
+*** 配置emacs git zsh
+    git clone https://github.com/fzhzhen1987/fzh.git fzh
+    git clone https://github.com/fzhzhen1987/emacs_setting.git .emacs.d
+    chmod +x install.sh (会将zsh的安装文件整合到fzh.git中)
+    ./install.sh
+**** 安装zsh-syntax-highlighting last-working-dir
+     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+     修改.zshrc
+     plugins=(last-working-dir
+     zsh-syntax-highlighting
+     )
+**** 安装powerline zsh主题
+     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
+     修改.zshrc
+     ZSH_THEME="powerlevel10k/powerlevel10k"
+     重新configure
+     p10k configure
+**** [option] 下载zsh配置文件
+     pacman -S wget
+     wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh
+*** 设置时区
+    ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+    hwclock --systohc --utc
+*** 设置主机名
+    NEW_HOSTNAME=x1c
+    echo "$NEW_HOSTNAME" > /etc/hostname
+    echo "127.0.1.1      ${NEW_HOSTNAME}.localdomain  $NEW_HOSTNAME" >> /etc/hosts
+*** 设置本地语言
+    sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+    sed -i 's/^#zh_CN.UTF-8/zh_CN.UTF-8/' /etc/locale.gen
+    sed -i 's/^#ja_JP.UTF-8/ja_JP.UTF-8/' /etc/locale.gen
+    locale-gen
+    cat << __LOCALE_CONF__ > /etc/locale.conf
+    LANG=en_US.UTF-8
+    LC_ALL=
+    __LOCALE_CONF__
+**** 查看环境中使用的语言
+     locale -a
+*** 安装启动器Bootloader
+    pacman -S grub efibootmgr
+    [option]
+    pacman -S os-prober
+    查看架构
+    uname -m
+*** 引导设置
+    配置为grub (64bit UEFI启动)
+    grub-install --target=x86_64-efi --efi-directory=/boot/ --bootloader-id=grub --recheck
+    grub-mkconfig -o /boot/grub/grub.cfg
+**** 注意点
+***** 1.添加grub启动项
+      /boot/grub/grub.cfg中添加
+***** 2.自制initramfs-linux.img(目的是在linux内核没启动之前加载必要模块)
+      为mmc启动加载必要模块(/etc/mkinitcpio.conf)
+      MODULES=(crypto_user vfat nls_cp437 nls_iso8859_1)
+      生成镜像命令为
+      mkinitcpio -p linux
+***** 3.modprobe自动加载模块简单讲解
+      modprobe -c 输出配置文件并退出
+      加载驱动是根据depmod -n的输出/lib/modules/version/modules.dep来加载全部的所需要模块.
+      制作initramfs的内核版本,需要和根文件系统中的内核版本一致,否则将出现不能加载驱动的问题.
+*** 安装远程登录必要软件
+    pacman -S intel-ucode
+**** 安装sshd
+     pacman -S openssh
+     systemctl enable sshd.service
+**** 安装无线网络
+     pacman -S iw dialog networkmanager netctl (wifi-menu可以使用 )
+     systemctl enable NetworkManager
+**** 安装samba
+     pacman -S samba
+     emacs /etc/samba/smb.conf
+     [homes]
+     comment = Home Directories
+     browseable = yes
+     writable = yes
+     create mask = 0644
+     directory mask = 0755
+     valid users = %S
+
+     [share]
+     path=/home/share
+     browsable=yes
+     writable=yes
+     guest ok=yes
+     guest only =no
+     read only=no
+     create mask = 0644
+     directory mask = 0755
+
+     systemctl enable smb.service nmb.service
+*** 重启系统
+    exit
+    umount -R /mnt
+    reboot 
+* 重启系统后,配置网络(在本机操作)
+** 固定ip指导方针
+   先nmcli连接一次，再修改.connect文件名字和内容，down一次，reload一次，up就可以了
+** 查看网络状态
+   systemctl status NetworkManager
+** 扫描当前可用wifi热点
+   nmcli d wifi list
+   wifi-menu
+** 连接wifi
+   nmcli device wifi connect 416_5G password 28267598 ifname wlp4s0
+** 固定ip,添加登录密码
+   打开配置文件,在目录/etc/NetworkManager/system-connections
+   [ipv4]
+   address1=192.168.3.130/24,192.168.3.1
+   dns-search=
+   method=manual
+
+   [wifi-security]
+   auth-alg=open
+   key-mgmt=wpa-psk
+   psk=28267598
+** 修改ip地址
+   nmcli c modify will_5G ipv4.addresses '192.168.50.130/24'
+   nmcli c up 416_5G (相当于ifup)
+** 删除ip地址
+   ip addr delete 192.168.50.149/24 dev wlp4s0
+** 断开连接
+   nmcli connection down 416_5G
+** 重载配置文件
+   sudo nmcli connection reload
+** 启动连接
+   nmcli c up 416_5G (相当于ifup)
+** 设置dns(.nmconnection的dns部分可删除)
+   ip route show
+   emacs /etc/resolv.conf
+   nameserver 192.168.50.1
+   避免被NetworkManager修改
+   chattr +i /etc/resolv.conf
+   需要修改时
+   chattr -i /etc/resolv.conf
+*** 相关功能
+**** -----对于设备
+**** 查看设备状态
+     nmcli device
+     nmcli device show wlp4s0
+**** 激活网卡
+     nmcli d connect wlp4s0
+**** -----对于连接
+**** 查看已经有的连接
+     nmcli c show (connection列表)
+     nmcli c show 416_5G (416_5G详细信息)
+**** 删除连接
+     nmcli connection del 416_5G
+**** 连接网络并输入密码
+     nmcli connection up 416 --ask
+** 配置更新源以及更新
+*** 添加163源
+    emacs /etc/pacman.conf
+    IgnorePkg = dbus emacs linux-headers linux
+    [archlinuxcn]
+    Server = http://mirrors.163.com/archlinux-cn/$arch
+*** 使能32位库
+    emacs /etc/pacman.conf
+    [multilib-testing]
+    Include = /etc/pacman.d/mirrorlist
+*** 更新
+    pacman -Syy    (pacman -Syyu)
+    pacman -S archlinuxcn-keyring
+    pacman -Sy archlinux-keyring
+    pacman-key --refresh-keys (需要有dns解析)
+**** [OPTION] 当安装archlinuxcn-keyring 报错"无法本地签名"
+     pacman -Syu haveged
+     systemctl start haveged
+     systemctl enable haveged
+
+     rm -rf /etc/pacman.d/gnupg
+     pacman-key --init
+     pacman-key --populate archlinux
+     pacman-key --populate archlinuxcn
+
+* 新建用户
+  groupadd -g 1000 fzh   (建立组)
+  useradd -u 2018 -m -g fzh -s /bin/zsh fzh
+  passwd fzh
+  gpasswd -a fzh wheel
+  chmod +wx /etc/sudoers
+** 新建samba用户
+   smbpasswd -a fzh
+** 去除注解 /etc/sudoers
+   sed -i 's/^# %wheel ALL=(ALL) NOPASSWD/ %wheel ALL=(ALL) NOPASSWD/' /etc/sudoers
+** 添加注解
+   sed -i 's/ %wheel ALL=(ALL) NOPASSWD/# %wheel ALL=(ALL) NOPASSWD/' /etc/sudoers
+** 修改用户所有权限
+   git clone https://github.com/fzhzhen1987/fzh.git /home/fzh
+   chgrp 组名 文件名 -R
+   chown 用户名 文件名 -R
+   chown user:group file -R
+
+   sudo -ll 可以显示当前的 sudo 配置
+* 安装必要软件
+** 安装电源管理[option]
+   pacman -S tlp
+   systemctl start tlp.service
+   systemctl enable tlp.service
+** 安装显卡驱动
+   pacman -S xf86-video-intel
+*** 确定显卡型号
+    lspci | grep VGA
+    官方仓库提供的驱动包:
+    通用———————————- xf86-video-vesa
+    intel———————————- xf86-video-intel
+    Geforce7+————————– xf86-video-nouveau
+    Geforce6/7————————- xf86-video-304xx
+** 安装触摸板驱动
+   pacman -S xf86-input-synaptics
+** 安装字体
+   pacman -S ttf-dejavu wqy-microhei wqy-zenhei
+*** nerd-fonts字体安装
+    https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/SourceCodePro/Black/complete
+    Sauce Code Pro Black Nerd Font Complete Mono.ttf
+    双击就可以安装
+** CPU使用状态
+   pacman -S htop
+** 安装开发相关
+   pacman -S global
+** 安装vnc
+   pacman -S tigervnc
+** 安装声音
+   pacman -S alsa-utils
+   调节声音大小命令
+   alsamixer
+** 安装输入法
+   pacman -S fcitx-im fcitx-configtool fcitx-sogoupinyin fcitx-googlepinyin
+   emacs .xprofile
+   export GTK_IM_MODULE=fcitx
+   export QT_IM_MODULE=fcitx
+   export XMODIFIERS="@im=fcitx"
+** 安装firefox
+   pacman -S firefox firefox-i18n-zh-cn
+** 安装蓝牙
+   pacman -S bluez bluez-utils
+   systemctl enable bluetooth.service
+** 安装版本回退
+   pacman -S downgrade
+   使用
+   downgrade kglobalaccel
+** 安装截图软件
+   pacman -S flameshot
+   flameshot gui
+** 触摸板开关
+   sh /home/fzh/trigger_touchpad.sh
+** 安装文件管理器ranger
+   pacman -S ranger
+** 安装ag
+   pacman -S the_silver_searcher
+** 安装fzf
+   pacman -S fzf
+** 安装kdiff3
+   pacman -S kdiff3
+** 安装wps
+   pacman -S wps-office-cn ttf-wps-fonts wps-office-mui-zh-cn
+** 安装录屏
+   pacman -S simplescreenrecorder
+* 安装图形界面 gnome
+  pacman -S xorg sddm xorg-xmodmap xorg-xinput xorg-xev
+  pacman -S gnome gnome-extra
+  systemctl enable sddm
+** 修改图标
+   图标库位置3个:
+   /usr/share/pixmaps 放在这里就好
+   /usr/share/icons/hicolor/32x32/apps/rygel.png
+   /usr/share/icons/Adwaita/256x256/legacy/
+   /usr/share/icons/Adwaita/512x512/legacy/utilities-terminal.png
+
+   设定图标
+   /usr/share/applications/kdiff3.desktop
+
+   [Desktop Entry]
+   Type=Application
+   Name=kdiff3
+   Comment=diff
+   Icon=kdiff3_kdiff3
+   Terminal=false
+   Exec=kdiff3
+   Categories=ConsoleOnly;System;FileTools;FileManager
+   MimeType=inode/directory;
+   Keywords=File;Manager;Browser;Explorer;Launcher;Vi;Vim;Python
+** kde 好用的小插件
+   filelight kate xfce4-taskmanager kcalc blueman thunar-volman
+   ksysguard smplayer dragon dolphin dolphin-plugins
+* 需要yay安装的包
+** 安装yay
+   github网址
+   https://github.com/Jguer/yay
+   安装方法
+   git clone https://aur.archlinux.org/yay.git
+   cd yay
+   makepkg -si
+   使用搜索:
+   yay -Ss <package-name>
+   安装:
+   yay -S <package-name>
+** 安装ccat
+   yay -S ccat
+** 安装终端剪切板yank
+   yay -S yank
+** 安装snapd
+   yay -S snapd
+   sudo snap list  列出安装的包
+   sudo snap install spotify
+   sudo snap remove spotify
+** 安装colordiff
+   pacman -S colordiff
+* 添加插件
+   pacman -S gnome-tweaks
+   打开gnome-tweaks,window->titlebar button:Maximize,Minimize
+   yay -S flat-remix-gnome  主题
+   登录网站 extensions.gnome.org
+   -> click here to install browser extension
+   pacman -S chrome-gnome-shell
+   pacman -S pacman-contrib   paccache 命令默认会删除近3个版本前的软件包
+
+   安装主题需要
+   tweaks->extensions->user themes打开
+
+
+   AlternateTab
+   Archlinux Updates Indicator
+   检查更新包的命令
+   terminator -e 'sh -c  "sudo pacman -Syu ; echo Done - Press enter to exit; read" '
+
+   Caffeine
+   Clipboard Indicator
+   Coverflow Alt-Tab 好看的窗口切换(无用)
+   Dash to Panel
+   Extension Update Notifier
+   GnomestatsPro (cpu状态)
+   Simple net speed
+   Status Area Horizontal Spacing
+   Window is Ready-Notification Remover
+   TopIcons Plus
+   Dynamic Panel Transparency
+
+   Applications Menu
+   User Themes
+   Window List
+* 安装kde
+  pacman -S plasma kde-applications
+* 安装音乐播放器
+  chmod +x lx-music-desktop-v0.17.0-x64.AppImage
+  然后就可以直接执行.
+* 日常设置以及维护
+** 修改系统默认shell
+   为root 用户设置zsh 为系统默认shell
+   chsh -s /bin/zsh root
+** 查看按键对应的值
+   xev |grep keycode
+** pacman使用总结
+   删除软件
+   pacman -Rscn
+   sudo pacman -Rsn `pacman -Qsq networkmanager` network-manager-applet
+
+   找出孤立包
+   pacman -Qtd
+   删除孤立包
+   pacman -Rs $(pacman -Qtdq)
+
+   pacman 下载的包路径
+   /var/cache/pacman/pkg
+   安装下载的包
+   pacman -U abc.pkg.tar.gz
+** git使用
+   修改第一次提交
+   git rebase -i --root
+
+   取消git 跟踪某个文件
+   git update-index --assume-unchanged file_path
+   git rm --cached file
+   重新跟踪
+   git update-index –no-assume-unchanged file_path
+*** git rebase出错 
+[error: The following untracked working tree files would be overwritten by merge:
+	resolv.conf
+Please move or remove them before you merge.
+Aborting
+hint: Could not execute the todo command
+hint: 
+hint:     pick bd98caa7ad40558d5d146ee26c6e6428aa88343e Add DNS Setting file
+hint: 
+hint: It has been rescheduled; To edit the command before continuing, please
+hint: edit the todo list first:
+hint: 
+hint:     git rebase --edit-todo
+hint:     git rebase --continue
+Could not apply bd98caa... Add DNS Setting file]
+
+遇到此处错误要先把resolv.conf删除,再git rebase --continue 就好了
+** emacs 个性化设定
+   M-x package-refresh-contents
+   M-x Customize Group
+*** org-mode 
+    标题全部展开
+    Shift-Tab
+** 触摸板优化
+   xinput list-props
+   : 1584090354:0;xinput list-props "TPPS/2 IBM TrackPoint"
+   : 1584090454:0;xinput list-props " TrackPoint"
+   : 1584090621:0;xinput list-props
+   : 1584090655:0;xinput list-props "Track*"
+   : 1584090663:0;xinput list-props "Track"
+   : 1584090849:0;find /sys/devices/platform/i8042 -name name | xargs grep -Fl TrackPoint | sed 's/\/input\/input[0-9]*\/name$//'
+   : 1584090882:0;ls
+   : 1584090897:0;cd /sys/devices/platform/i8042
+   : 1584090898:0;ls
+   : 1584090941:0;ls driver
+   : 1584090975:0;grep -rin "TrackPoint"
+   : 1584090978:0;sudo grep -rin "TrackPoint"
+   : 1584091026:0;xinput --list --short
+   : 1584091140:0;ls
+   : 1584091143:0;cd 
+   : 1584091144:0;ls
+   : 1584091146:0;cd memo
+   : 1584091147:0;ls
+   : 1584091151:0;e arch_linux_install.org
+   : 1584091573:0;xinput --set-prop "13" "Device Accel Constant Deceleration" 0.5
+   : 1584091975:0;xinput -h
+   : 1584091983:0;man xinput
+   : 1584092104:0;xinput --list-props "13"
+   : 1584092221:0;xinput --set-prop "13" "libinput Accel Speed" 0.5
+   : 1584092230:0;xinput --list-props "13"
+   : 1584092260:0;xinput --set-prop "13" "libinput Accel Speed" 10
+   : 1584092284:0;xinput --set-prop "13" "libinput Accel Speed" 0.9
+   : 1584092294:0;xinput --set-prop "13" "libinput Accel Speed" 0.1
+   : 1584092304:0;xinput --set-prop "13" "libinput Accel Speed" 0.001
+   : 1584092324:0;xinput --list-props "13"
+   : 1584092351:0;xinput --set-prop "13" "libinput Accel Speed" 0.00001
+   : 1584092372:0;xinput --set-prop "13" "libinput Accel Speed" 0.99999
+   : 1584092383:0;xinput --set-prop "13" "libinput Accel Speed" 0.00000001
+   : 1584092391:0;xinput --list-props "13"
+   : 1584092402:0;xinput --set-prop "13" "libinput Accel Speed" 0.00000000001
+   : 1584092422:0;xinput --set-prop "13" "libinput Accel Speed" 0.00000001
+   : 1584092457:0;xinput --set-prop "13" "libinput Accel Speed" 0.000001
+   : 1584092626:0;xinput --list --short 
+   > xinput --list --short
+   ⎡ Virtual core pointer                    	id=2	[master pointer  (3)]
+   ⎜   ↳ Virtual core XTEST pointer              	id=4	[slave  pointer  (2)]
+   ⎜   ↳ Synaptics TM3288-003                    	id=12	[slave  pointer  (2)]
+   ⎣ Virtual core keyboard                   	id=3	[master keyboard (2)]
+   ↳ Virtual core XTEST keyboard             	id=5	[slave  keyboard (3)]
+   ↳ Power Button                            	id=6	[slave  keyboard (3)]
+   ↳ Video Bus                               	id=7	[slave  keyboard (3)]
+   ↳ Sleep Button                            	id=8	[slave  keyboard (3)]
+   ↳ Integrated Camera: Integrated C         	id=9	[slave  keyboard (3)]
+   ↳ AT Translated Set 2 keyboard            	id=10	[slave  keyboard (3)]
+   ↳ ThinkPad Extra Buttons                  	id=11	[slave  keyboard (3)]
+
+   rmi4_f01 rmi4-00.fn01: found RMI device, manufacturer: Synaptics, product: TM3288-003, fw id: 2538625
+   synaptics: Synaptics TM3288-003: touchpad found
+   TPPS/2 Elan TrackPoint
+   [     8.947] (II) config/udev: Adding input device TPPS/2 Elan TrackPoint (/dev/input/event15)
+
+   > xinput list
+   ⎡ Virtual core pointer                    	id=2	[master pointer  (3)]
+   ⎜   ↳ Virtual core XTEST pointer              	id=4	[slave  pointer  (2)]
+   ⎜   ↳ Synaptics TM3288-003                    	id=12	[slave  pointer  (2)]
+   ⎜   ↳ TPPS/2 Elan TrackPoint                  	id=13	[slave  pointer  (2)]
+   ⎣ Virtual core keyboard                   	id=3	[master keyboard (2)]
+   ↳ Virtual core XTEST keyboard             	id=5	[slave  keyboard (3)]
+   ↳ Power Button                            	id=6	[slave  keyboard (3)]
+   ↳ Video Bus                               	id=7	[slave  keyboard (3)]
+   ↳ Sleep Button                            	id=8	[slave  keyboard (3)]
+   ↳ Integrated Camera: Integrated C         	id=9	[slave  keyboard (3)]
+   ↳ AT Translated Set 2 keyboard            	id=10	[slave  keyboard (3)]
+   ↳ ThinkPad Extra Buttons                  	id=11	[slave  keyboard (3)]
+
+
+
+   > xinput list | grep "TrackPoint"
+   ⎜   ↳ TPPS/2 Elan TrackPoint                  	id=13	[slave  pointer  (2)]
+   > xinput list-props 13
+   Device 'TPPS/2 Elan TrackPoint':
+   Device Enabled (172):	1
+   Coordinate Transformation Matrix (174):	1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000
+   libinput Natural Scrolling Enabled (349):	0
+   libinput Natural Scrolling Enabled Default (350):	0
+   libinput Scroll Methods Available (351):	0, 0, 1
+   libinput Scroll Method Enabled (352):	0, 0, 1
+   libinput Scroll Method Enabled Default (353):	0, 0, 1
+   libinput Button Scrolling Button (354):	2
+   libinput Button Scrolling Button Default (355):	2
+   libinput Middle Emulation Enabled (356):	0
+   libinput Middle Emulation Enabled Default (357):	0
+   libinput Accel Speed (358):	0.000000
+   libinput Accel Speed Default (359):	0.000000
+   libinput Accel Profiles Available (360):	1, 1
+   libinput Accel Profile Enabled (361):	1, 0
+   libinput Accel Profile Enabled Default (362):	1, 0
+   libinput Left Handed Enabled (363):	0
+   libinput Left Handed Enabled Default (364):	0
+   libinput Send Events Modes Available (295):	1, 0
+   libinput Send Events Mode Enabled (296):	0, 0
+   libinput Send Events Mode Enabled Default (297):	0, 0
+   Device Node (298):	"/dev/input/event15"
+   Device Product ID (299):	2, 10
+   libinput Drag Lock Buttons (365):	<no items>
+   libinput Horizontal Scroll Enabled (366):	1
+
+
+   xinput set-prop 13 358 -0.0000001
+** 测试小红点
+   sudo libinput debug-events --device /dev/input/event15
+** 休眠后小红点无法使用的解决方法
+   mysleep
+   /usr/lib/systemd/system/mysleep
+
+   #!/bin/bash
+   /usr/lib/systemd/systemd-sleep suspend && modprobe -r psmouse && modprobe psmouse proto=imps
+
+
+   /usr/lib/systemd/system/systemd-suspend.service
+   [Service]
+   Type=oneshot
+   #ExecStart=/usr/lib/systemd/systemd-sleep suspend
+   ExecStart=/usr/lib/systemd/system/mysleep
+   以上不太管用,睡醒后触摸板被识别成别的设备
+   ------------------------------------------------------
+   sudo rmmod rmi_smbus
+   sudo modprobe rmi_smbus
+
+   或者
+   sudo rmmod i2c_hid
+   sudo modprobe i2c_hid
+
+   /usr/lib/systemd/system-sleep/touchpad-fix.sh
+
+   echo 'if [ "$1" = "post" ] && exec rmmod i2c_hid ; modprobe i2c_hid' > /usr/lib/systemd/system-sleep/touchpad-fix.sh
+   chmod +x /usr/lib/systemd/system-sleep/touchpad-fix.sh
+** ag使用
+   ag foo /bar/
+   Find matches for "foo" in path /bar/
+
+   ag -G cpio.c size
+   在所有文件名为 *cpio.c* 的文件中搜索字串 size.
+
+   ag -G cpio.c -w size
+   在所有文件名为 *cpio.c* 的文件中搜索单词 size
+
+   ag .rb files/
+   在files目录搜索含  .rb  的字串  (所有的 arb,   crb  等等)
+
+   ag -Q .rb files/
+   在files目录搜索含  .rb  的字串  (只匹配 .rb，相当于正则式的  \.rb)
+
+   ag DHH -l
+   搜索含有单词 DHH 的所有文件，且只打印处文件名
+
+   ag readme -l -G action
+   在所有文件名为 *action* 的文件中搜索字串 readme，且只打印处文件名
+
+   ag readme -l -G action$
+   在所有文件名为 *action 的文件中搜索字串 readme，且只打印处文件名
+
+** 更改root
+   sudo chroot /mnt
+   sudo arch-chroot /mnt
+   pacman -S arch-install-scripts
+** 设置Linux默认的文件管理器
+   xdg-mime default Thunar.desktop inode/directory
+
+   在~/.config/mimeapps.list的
+   [Default Applications]字段下修改
+   inode/directory=org.gnome.Nautilus.desktop
+   即可更改默认的文件管理器
+-----------上面的不管用,下面的一句命令就可以了
+   xdg-mime default .desktop inode/directory application/x-gnome-saved-search
+
+* github上传自己的库
+  git remote add origin https://github.com/fzhzhen1987/etc.git
+
+  git push -u origin master
