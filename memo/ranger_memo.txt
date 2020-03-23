@@ -1,0 +1,27 @@
+* 生成配置文件
+ranger --copy-config=all
+
+* 安装插件
+** Ranger Devicons plugin
+*** 添加图标
+git clone https://github.com/alexanderjeurissen/ranger_devicons.git
+cd ranger_devicons
+make install
+make uninstall
+
+前提icon包
+git clone https://github.com/ryanoasis/nerd-fonts.git
+** 添加预览图片功能
+yay -S python-ueberzug
+emacs rc.conf
+set preview_images true
+set preview_images_method ueberzug
+* 快捷键
+** g相当于go
+gh -go home
+** :号
+rc.conf文件alias开头的是:号可以使用使用的命令.
+** copymap q ZZ ZQ
+将q的功能赋予ZZ 和ZQ
+** 查看文件属性快捷键
+
