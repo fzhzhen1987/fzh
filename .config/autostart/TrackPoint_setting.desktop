@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Exec=/etc/X11/xinit/xinitrc
+Hidden=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=TrackPoint_setting
+Name=TrackPoint_setting
+Comment[en_US]=
+Comment=
