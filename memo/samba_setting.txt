@@ -1,0 +1,56 @@
+* 1.首先服务器采用用户验证的方式,每个用户可以访问自己的宿主目录.
+并且只有该用户能访问宿主目录,并具有完全的权限,而其他人不能看到你的宿主目录.
+
+[homes]
+comment = Home Directories
+browseable = no
+writable = yes
+valid users = %S
+create mode = 0664
+directory mode = 0775
+
+* 2.建立一个caiwu的文件夹,希望caiwu组和lingdao组的人能看到,network02也可以访问.
+但只有caiwu01有写的权限.
+
+[caiwu]
+comment = caiwu
+path = /home/samba/caiwu
+public = no
+valid users = @caiwu,@lingdao,network02
+write list = caiwu01
+printable = no
+
+* 3.建立一个lindao的目录,只有领导组的人可以访问并读写,还有network02也可以访问,
+但外人看不到那个目录.
+
+[lingdao]
+comment = lingdao
+path = /home/samba/lingdao
+public = no
+browseable = no
+valid users = @lingdao,network02
+printable = no
+
+* 4.建立一个文件交换目录exchange，所有人都能读写,包括guest用户,但每个人不能删除别人的文件.
+
+[exchage]
+comment = Exchange File Directory
+path = /home/samba/exchange
+public = yes
+writable = yes
+
+#exchange段基本能满足我们的第4要求,但不能满足每个人不能删除别人的文件这个条件.
+即使里设置了mask也是没用,其实这个条件只要unix设置一个粘着位就行.
+
+chmod -R 1777 /home/samba/exchange
+
+注意这里权限是1777,类似的系统目录/tmp也具有相同的权限,这个权限能实现每个人能自由写文件,
+但不能删除别人的文件这个要求.
+
+* 5.建立一个公共的只读文件夹public,所有人只读这个文件夹的内容.
+
+[public]
+comment = Read Only Public
+path = /home/samba/public
+public = yes
+read only = yes
