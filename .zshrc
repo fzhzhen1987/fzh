@@ -87,6 +87,9 @@ plugins=(last-working-dir
 	 zsh-syntax-highlighting
 	)
 
+#不显示一些冲突,当root使用fzh配置时
+ZSH_DISABLE_COMPFIX=true
+
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
