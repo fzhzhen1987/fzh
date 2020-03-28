@@ -1,0 +1,21 @@
+[Desktop Entry]
+Name[en_GB]=luoxue Music
+Name[zh_CN]=洛雪音乐
+Name=luoxue Music
+GenericName[en_GB]=luoxue Music Player
+GenericName[zh_CN]=洛雪音乐播放器
+GenericName=luoxue Music Player
+Comment[en_GB]=Play and organise your music collection
+Comment[zh_CN]=播放与管理您的音乐集
+Comment=Play and organize your music collection
+# Translators: Do NOT translate or transliterate this text (this is an icon file name)!
+Icon[sr@latin]=org.gnome.Music
+Icon=org.gnome.Music
+Exec=/home/music/music_app/lx-music-desktop-v0.17.0-x64.AppImage_
+Terminal=false
+Type=Application
+# Translators: Search terms to find this application. Do NOT translate or localize the semicolons! The list MUST also end with a semicolon!
+Keywords[en_GB]=Music;Player;
+Keywords[zh_CN]=Music;Player;音乐;播放器;
+Keywords=Music;Player;
+StartupNotify=true
