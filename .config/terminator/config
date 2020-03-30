@@ -10,12 +10,14 @@
   next_profile = disable
   next_tab = <Primary><Shift>n
   prev_tab = <Primary><Shift>p
+  scaled_zoom = disable
+  toggle_zoom = <Primary><Shift>z
 [layouts]
   [[default]]
     [[[child1]]]
       parent = window0
-      type = Terminal
       profile = default
+      type = Terminal
     [[[window0]]]
       parent = ""
       type = Window
