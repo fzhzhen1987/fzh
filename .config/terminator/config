@@ -2,16 +2,16 @@
   always_on_top = True
   suppress_multiple_term_dialog = True
   tab_position = bottom
-  title_font = DejaVu Sans Oblique Semi-Condensed 9
+	title_font = D050000L 9
 [keybindings]
-  broadcast_group = <Alt>a
-  go_next = disable
-  go_prev = disable
-  next_profile = disable
-  next_tab = <Primary><Shift>n
-  prev_tab = <Primary><Shift>p
-  scaled_zoom = disable
-  toggle_zoom = <Primary><Shift>z
+	go_next = disable
+	go_prev = disable
+	next_profile = disable
+	next_tab = <Primary><Shift>n
+	prev_tab = <Primary><Shift>p
+	scaled_zoom = disable
+	toggle_zoom = <Primary><Shift>z
+	broadcast_group = None
 [layouts]
   [[default]]
     [[[child1]]]
@@ -31,7 +31,7 @@
     copy_on_selection = True
     cursor_color = "#c4a000"
     cursor_color_fg = False
-    font = SauceCodePro Nerd Font Mono Heavy 13
+    font = ""
     foreground_color = "#ffffff"
     show_titlebar = False
     split_to_group = True
