@@ -19,12 +19,21 @@ export LANG=en_US.UTF-8
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
 #fzf
-export FZF_DEFAULT_OPTS='--bind ctrl-e:down,ctrl-u:up --preview "[[ $(file --mime {}) =~ binary ]] && echo {} is a binary file || (ccat --color=always {} || highlight -O ansi -l {} || cat {}) 2> /dev/null | head -500"'
-export FZF_DEFAULT_COMMAND='ag --hidden --ignore .git -g ""'
+export FZF_DEFAULT_OPTS='--height 90% --bind=ctrl-e:toggle+down,ctrl-k:preview-up,ctrl-j:preview-down --preview "[[ $(file --mime {}) =~ binary ]] && echo {} is a binary file || (ccat --color=always {} || highlight -O ansi -l {} || cat {}) 2> /dev/null | head -500" --preview-window=down'
+export FZF_DEFAULT_COMMAND='fd --hidden --follow -E ".git" -E "node_modules" . '
 export FZF_COMPLETION_TRIGGER='\'
-source ~/.config/zsh/key-bindings.zsh
-source ~/.config/zsh/completion.zsh
 
+#############################################################
+#使用\时使用的搜索命令
+_fzf_compgen_path() {
+  fd --hidden --follow -E ".git" -E "node_modules" .
+}
+
+# Use fd to generate the list for directory completion,使用cd只查找目录
+_fzf_compgen_dir() {
+  fd --type d --hidden --follow -E ".git" -E "node_modules" .
+}
+#############################################################
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
 # a theme from this variable instead of looking in ~/.oh-my-zsh/themes/
@@ -84,8 +93,9 @@ source ~/.config/zsh/completion.zsh
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(last-working-dir
-	 zsh-syntax-highlighting
-	)
+	zsh-syntax-highlighting
+	zsh-autosuggestions
+)
 
 #不显示一些冲突,当root使用fzh配置时
 ZSH_DISABLE_COMPFIX=true
@@ -122,9 +132,23 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias diff="colordiff"
 alias e="emacs -nw"
-alias grep="grep --color=always"
-alias ra="ranger"
+alias rg="rg --color=always --no-heading --smart-case -g !.git"
+alias ag="ag --color --smart-case --ignore .git"
+alias ra='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
 alias q="exit"
 
+alias nv="nvim"
+alias lg="lazygit"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/snap/bin
+
+source ~/.config/zsh/key-bindings.zsh
+source ~/.config/zsh/completion.zsh
+
+export VISUAL=nvim
+export EDITOR=nvim
+
+#修改文件夹颜色
+export LS_COLORS=${LS_COLORS}'di=01;94':
+#if [ -f ~/.Xmodmap ]; then xmodmap ~/.Xmodmap; fi
