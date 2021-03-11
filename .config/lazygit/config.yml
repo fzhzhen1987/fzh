@@ -33,17 +33,19 @@ keybinding:
     universal:
       prevItem-alt: 'k' # go one line up
       nextItem-alt: 'j' # go one line down
+      prevItem: 'k' # go one line up
+      nextItem: 'j' # go one line down
       prevBlock: '<c-p>' # goto the previous block / panel
       nextBlock: '<c-n>' # goto the next block / panel
       prevBlock-alt: '<c-p>' # goto the previous block / panel
       nextBlock-alt: '<c-n>' # goto the next block / panel
-      quit: '<c-q>'
-      quit-alt1: '<c-q>' # alternative/alias of quit
-      return: 'q' # return to previous menu, will quit if there's nowhere to return
+      quit: 'q'
+      quit-alt1: 'q' # alternative/alias of quit
+      return: '<c-q>' # return to previous menu, will quit if there's nowhere to return
       quitWithoutChangingDirectory: 'Q'
       togglePanel: '<tab>' # goto the next panel
-      prevItem: '<up>' # go one line up
-      nextItem: '<down>' # go one line down
+      nextScreenMode: 'x'
+      prevScreenMode: 'x'
       prevPage: ',' # go to next page in list
       nextPage: '.' # go to previous page in list
       gotoTop: '<' # go to top of list
@@ -62,43 +64,37 @@ keybinding:
       new: 'n'
       edit: 'e'
       openFile: 'o'
-      scrollUpMain: '<pgup>' # main panel scrool up
-      scrollDownMain: '<pgdown>' # main panel scrool down
-      scrollUpMain-alt1: 'K' # main panel scrool up
-      scrollDownMain-alt1: 'J' # main panel scrool down
-      scrollUpMain-alt2: '<c-u>' # main panel scrool up
-      scrollDownMain-alt2: '<c-d>' # main panel scrool down
+      scrollUpMain: '<c-k>' # main panel scrool up
+      scrollDownMain: '<c-j>' # main panel scrool down
       executeCustomCommand: ':'
       createRebaseOptionsMenu: 'm'
       pushFiles: 'P'
       pullFiles: 'p'
       refresh: 'R'
-      createPatchOptionsMenu: '<c-p>'
-      nextScreenMode: '+'
-      prevScreenMode: '_'
+      createPatchOptionsMenu: '<c-o>'
       undo: 'z'
       redo: '<c-z>'
       filteringMenu: '<c-s>'
-      diffingMenu: 'W'
+      diffingMenu: '<c-e>'
       diffingMenu-alt: '<c-e>' # deprecated
-      copyToClipboard: '<c-o>'
       submitEditorText: '<enter>'
       appendNewline: '<tab>'
+      copyToClipboard: '<c-c>' #no clipboard can use.
     status:
       checkForUpdate: 'u'
       recentRepos: '<enter>'
     files:
+      toggleStagedAll: '<c-a>' # stage/unstage all
       commitChanges: 'c'
-      commitChangesWithoutHook: 'w' # commit changes without pre-commit hook
-      amendLastCommit: 'A'
       commitChangesWithEditor: 'C'
-      ignoreFile: 'i'
-      refreshFiles: 'r'
-      stashAllChanges: 's'
-      viewStashOptions: 'S'
-      toggleStagedAll: 'a' # stage/unstage all
+      amendLastCommit: 'a'
       viewResetOptions: 'D'
       fetch: 'f'
+      commitChangesWithoutHook: 'w' # commit changes without pre-commit hook
+      ignoreFile: 'i'
+      refreshFiles: 'r'
+      stashAllChanges: 'S'
+      viewStashOptions: 's'
     branches:
       createPullRequest: 'o'
       checkoutBranchByName: 'c'
@@ -114,13 +110,13 @@ keybinding:
       squashDown: 's'
       renameCommit: 'r'
       renameCommitWithEditor: 'R'
-      viewResetOptions: 'g'
+      viewResetOptions: 'G'
       markCommitAsFixup: 'f'
-      createFixupCommit: 'F' # create fixup commit for this commit
+      createFixupCommit: 'F' # create fixup commit for this commit,当前提交名字为(修改某次提交)
       squashAboveCommits: 'S'
-      moveDownCommit: '<c-j>' # move commit down one
-      moveUpCommit: '<c-k>' # move commit up one
-      amendToCommit: 'A'
+      moveDownCommit: '<down>' # move commit down one
+      moveUpCommit: '<up>' # move commit up one
+      amendToCommit: 'a'
       pickCommit: 'p' # pick commit (when mid-rebase)
       revertCommit: 't'
       cherryPickCopy: 'c'
@@ -128,7 +124,7 @@ keybinding:
       pasteCommits: 'v'
       tagCommit: 'T'
       checkoutCommit: '<space>'
-      resetCherryPick: '<c-R>'
+      resetCherryPick: '<c-g>'
       copyCommitMessageToClipboard: '<c-y>'
     stash:
       popStash: 'g'
