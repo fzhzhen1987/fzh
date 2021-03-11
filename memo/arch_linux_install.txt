@@ -83,7 +83,7 @@ quit
     pacman -S git tig
     git clone https://github.com/fzhzhen1987/etc.git /mnt/etc
 ** 5.部署基本系统
-   pacstrap -i /mnt base linux linux-firmware base-devel linux-headers emacs git tig zsh terminator
+   pacstrap -i /mnt base linux linux-firmware base-devel linux-headers ripgrep git tig zsh terminator bear fd ccls
 ** 6.生成fstab
    genfstab -U -p /mnt >> /mnt/etc/fstab
 *** 确认fstab信息
@@ -101,11 +101,13 @@ quit
     git clone https://github.com/fzhzhen1987/emacs_setting.git .emacs.d
     chmod +x install.sh (会将zsh的安装文件整合到fzh.git中)
     ./install.sh
-**** 安装zsh-syntax-highlighting last-working-dir
+**** 安装zsh-syntax-highlighting last-working-dir zsh-autosuggestion
      git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+     git clone https://github.com/zsh-users/zsh-autosuggestions.git  ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
      修改.zshrc
      plugins=(last-working-dir
      zsh-syntax-highlighting
+     zsh-autosuggestions
      )
 **** 安装powerline zsh主题
      git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
@@ -189,7 +191,7 @@ quit
 *** 重启系统
     exit
     umount -R /mnt
-    reboot 
+    reboot
 * 重启系统后,配置网络(在本机操作)
 ** 固定ip指导方针
    先nmcli连接一次，再修改.connect文件名字和内容，down一次，reload一次，up就可以了
@@ -290,6 +292,8 @@ quit
 
    sudo -ll 可以显示当前的 sudo 配置
 * 安装必要软件
+** 安装包管理器
+   pacman -Ss pamac
 ** 安装电源管理[option]
    pacman -S tlp
    systemctl start tlp.service
@@ -353,6 +357,8 @@ quit
    pacman -S wps-office-cn ttf-wps-fonts wps-office-mui-zh-cn
 ** 安装录屏
    pacman -S simplescreenrecorder
+** 安装.chm阅读器
+   pacman -S kchmviewer
 * 安装图形界面 gnome
   pacman -S xorg sddm xorg-xmodmap xorg-xinput xorg-xev
   pacman -S gnome gnome-extra
@@ -364,6 +370,7 @@ quit
    /usr/share/icons/Adwaita/256x256/legacy/
    /usr/share/icons/Adwaita/512x512/legacy/utilities-terminal.png
 
+system-file-manager
    设定图标
    /usr/share/applications/kdiff3.desktop
 
@@ -401,46 +408,74 @@ quit
    sudo snap list  列出安装的包
    sudo snap install spotify
    sudo snap remove spotify
+
+   systemctl enable snapd.socket
+   systemctl start snapd.socket
+   sudo ln -s /var/lib/snapd/snap /snap
+
+   使用snap安装的软件位于/snap/bin,将其加入$PATH,这里以zsh为例
+   echo "export PATH=${PATH}:/snap/bin" >> ~/.zshrc
+** 安装icloud
+   snap install icloud-notes-linux-client
+
+icloud.desktop
+   [Desktop Entry]
+   Version=1.0
+   Type=Application
+   Exec=/var/lib/snapd/snap/bin/icloud-notes-linux-client
+   Icon=system-file-manager
+   StartupNotify=true
+   Terminal=false
+   X-AppStream-Ignore=True
+   Name=icloud
+   Name[en_AU]=icloud
+   Name[en_GB]=icloud
 ** 安装colordiff
    pacman -S colordiff
 * 添加插件
-   pacman -S gnome-tweaks
-   打开gnome-tweaks,window->titlebar button:Maximize,Minimize
-   yay -S flat-remix-gnome  主题
-   登录网站 extensions.gnome.org
-   -> click here to install browser extension
-   pacman -S chrome-gnome-shell
-   pacman -S pacman-contrib   paccache 命令默认会删除近3个版本前的软件包
+  pacman -S gnome-tweaks
+  打开gnome-tweaks,window->titlebar button:Maximize,Minimize
+  yay -S flat-remix-gnome  主题
+  登录网站 extensions.gnome.org
+  -> click here to install browser extension
+  pacman -S chrome-gnome-shell
+  pacman -S pacman-contrib   paccache 命令默认会删除近3个版本前的软件包
 
-   安装主题需要
-   tweaks->extensions->user themes打开
+  安装主题需要
+  tweaks->extensions->user themes打开
 
 
-   AlternateTab
-   Archlinux Updates Indicator
-   检查更新包的命令
-   terminator -e 'sh -c  "sudo pacman -Syu ; echo Done - Press enter to exit; read" '
+  AlternateTab
+  Archlinux Updates Indicator
+  检查更新包的命令
+  terminator -e 'sh -c  "sudo pacman -Syu ; echo Done - Press enter to exit; read" '
 
-   Caffeine
-   Clipboard Indicator
-   Coverflow Alt-Tab 好看的窗口切换(无用)
-   Dash to Panel
-   Extension Update Notifier
-   GnomestatsPro (cpu状态)
-   Simple net speed
-   Status Area Horizontal Spacing
-   Window is Ready-Notification Remover
-   TopIcons Plus
-   Dynamic Panel Transparency
+  Caffeine
+  Clipboard Indicator
+  Coverflow Alt-Tab 好看的窗口切换(无用)
+  Dash to Panel
+  Extension Update Notifier
+  GnomestatsPro (cpu状态)
+  Simple net speed
+  Status Area Horizontal Spacing
+  Window is Ready-Notification Remover
+  TopIcons Plus
+  Dynamic Panel Transparency
 
-   Applications Menu
-   User Themes
-   Window List
+  Applications Menu
+  User Themes
+  Window List
+
+  No Topleft Hot Corner(左上角不变)
 * 安装kde
   pacman -S plasma kde-applications
 * 安装音乐播放器
+  下载地址
+  https://github.com/lyswhut/lx-music-desktop/releases
   chmod +x lx-music-desktop-v0.17.0-x64.AppImage
   然后就可以直接执行.
+  图标文件位置
+  /usr/share/applications/Luoxue.Music.desktop
 * 日常设置以及维护
 ** 修改系统默认shell
    为root 用户设置zsh 为系统默认shell
@@ -470,18 +505,18 @@ quit
    git rm --cached file
    重新跟踪
    git update-index –no-assume-unchanged file_path
-*** git rebase出错 
+*** git rebase出错
 [error: The following untracked working tree files would be overwritten by merge:
 	resolv.conf
 Please move or remove them before you merge.
 Aborting
 hint: Could not execute the todo command
-hint: 
+hint:
 hint:     pick bd98caa7ad40558d5d146ee26c6e6428aa88343e Add DNS Setting file
-hint: 
+hint:
 hint: It has been rescheduled; To edit the command before continuing, please
 hint: edit the todo list first:
-hint: 
+hint:
 hint:     git rebase --edit-todo
 hint:     git rebase --continue
 Could not apply bd98caa... Add DNS Setting file]
@@ -490,7 +525,7 @@ Could not apply bd98caa... Add DNS Setting file]
 ** emacs 个性化设定
    M-x package-refresh-contents
    M-x Customize Group
-*** org-mode 
+*** org-mode
     标题全部展开
     Shift-Tab
 ** 触摸板优化
@@ -509,7 +544,7 @@ Could not apply bd98caa... Add DNS Setting file]
    : 1584090978:0;sudo grep -rin "TrackPoint"
    : 1584091026:0;xinput --list --short
    : 1584091140:0;ls
-   : 1584091143:0;cd 
+   : 1584091143:0;cd
    : 1584091144:0;ls
    : 1584091146:0;cd memo
    : 1584091147:0;ls
@@ -532,7 +567,7 @@ Could not apply bd98caa... Add DNS Setting file]
    : 1584092402:0;xinput --set-prop "13" "libinput Accel Speed" 0.00000000001
    : 1584092422:0;xinput --set-prop "13" "libinput Accel Speed" 0.00000001
    : 1584092457:0;xinput --set-prop "13" "libinput Accel Speed" 0.000001
-   : 1584092626:0;xinput --list --short 
+   : 1584092626:0;xinput --list --short
    > xinput --list --short
    ⎡ Virtual core pointer                    	id=2	[master pointer  (3)]
    ⎜   ↳ Virtual core XTEST pointer              	id=4	[slave  pointer  (2)]
@@ -627,46 +662,158 @@ Could not apply bd98caa... Add DNS Setting file]
 
    echo 'if [ "$1" = "post" ] && exec rmmod i2c_hid ; modprobe i2c_hid' > /usr/lib/systemd/system-sleep/touchpad-fix.sh
    chmod +x /usr/lib/systemd/system-sleep/touchpad-fix.sh
-** ag使用
-   ag foo /bar/
-   Find matches for "foo" in path /bar/
-
-   ag -G cpio.c size
-   在所有文件名为 *cpio.c* 的文件中搜索字串 size.
-
-   ag -G cpio.c -w size
-   在所有文件名为 *cpio.c* 的文件中搜索单词 size
-
-   ag .rb files/
-   在files目录搜索含  .rb  的字串  (所有的 arb,   crb  等等)
-
-   ag -Q .rb files/
-   在files目录搜索含  .rb  的字串  (只匹配 .rb，相当于正则式的  \.rb)
-
-   ag DHH -l
-   搜索含有单词 DHH 的所有文件，且只打印处文件名
-
-   ag readme -l -G action
-   在所有文件名为 *action* 的文件中搜索字串 readme，且只打印处文件名
-
-   ag readme -l -G action$
-   在所有文件名为 *action 的文件中搜索字串 readme，且只打印处文件名
-
 ** 更改root
    sudo chroot /mnt
    sudo arch-chroot /mnt
    pacman -S arch-install-scripts
 ** 设置Linux默认的文件管理器
-   xdg-mime default Thunar.desktop inode/directory
-
+   将Thunar设置为默认的文件管理器
+   执行
+   xdg-mime default Thunar.desktop inode/directory application/x-gnome-saved-search
    在~/.config/mimeapps.list的
-   [Default Applications]字段下修改
-   inode/directory=org.gnome.Nautilus.desktop
-   即可更改默认的文件管理器
------------上面的不管用,下面的一句命令就可以了
-   xdg-mime default .desktop inode/directory application/x-gnome-saved-search
+   [Default Applications]字段下生成
+   inode/directory=thunar.desktop
+   application/x-gnome-saved-search=thunar.desktop
 
+	修改默认的xdg-open 文本的方式:首先安装nvim-qt
+	修改文件~/.config/mimeapps.list:
+		text/x-makefile=nvim-qt.desktop;
+		text/plain=nvim-qt.desktop;
+
+	恢复默认的Nautilus文件管理器
+   执行
+   xdg-mime default org.gnome.Nautilus.desktop inode/directory application/x-gnome-saved-search
+   [Default Applications]字段下变为
+   inode/directory=org.gnome.Nautilus.desktop
+   application/x-gnome-saved-search=org.gnome.Nautilus.desktop
+   pacstrap -i /mnt base linux linux-firmware base-devel linux-headers emacs git tig zsh terminator
+** archlinux的nautilus更换默认terminal
+   首先删除gnome默认的terminal
+   sudo pacman -Rsn gnome-terminal
+   再安装删除nautilus-terminal
+   sudo pacman -Rsn nautilus-terminal
+   再安装filemanager-actions
+   sudo pacman -S filemanager-actions
+   打开设置
+   fma-config-tool
+   设置方法同ubuntu20的nautilus-actions
 * github上传自己的库
   git remote add origin https://github.com/fzhzhen1987/etc.git
 
   git push -u origin master
+  git init --bare
+  git clone --bare
+
+* gnome-tweaks更改键盘映射
+可以改键盘映射
+
+*更改终端文件夹颜色
+echo $LS_COLORS
+di=01;34
+条目=显示效果代码;前景色代码;背景色代码
+di = directory
+fi = file
+ln = symbolic link
+pi = fifo file
+so = socket file
+bd = block file
+cd = character file
+ex = executable file
+
+在.zshrc中修改
+export LS_COLORS=${LS_COLORS}'di=01;94':
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+挂起后自动
+nv /etc/systemd/system/resume.service
+
+内容如下
+
+[Unit]
+Description=User resume actions
+After=suspend.target
+
+[Service]
+User=fzh
+Type=simple
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/xmodmap /home/fzh/.Xmodmap
+
+[Install]
+WantedBy=suspend.target
+
+执行命令:
+systemctl enable resume.service
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+安装neovim(不能安装到0.5版本的)
+sudo pacman -S neovim
+0.5安装方法
+git clone https://aur.archlinux.org/neovim-nightly-git.git
+cd neovim-nightly-git
+makepkg -si
+
+修改git默认编辑器
+git config –global core.editor nvim
+
+安装Neovim 0.5+
+sudo apt-get install software-properties-common
+sudo apt-add-repository ppa:neovim-ppa/unstable
+sudo apt-get update
+sudo apt-get install neovim
+
+sudo pacman -S python3
+sudo pacman -S python-pip
+
+install apt-get install python3-pip
+
+python3 -m pip install --upgrade pip
+pip3 install pynvim	#通过pip3安装pynvim
+pip3 install --upgrade pynvim	#升级
+pip3 install --user --upgrade pynvim
+pip3 install --user --upgrade neovim
+
+安装Node.js
+先切换到root
+curl -sL install-node.now.sh | sh
+
+安装yarn
+curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
+
+安装brew
+sudo apt-get install curl
+sudo apt-get install ruby
+
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+
+git clone https://github.com/Linuxbrew/homebrew-core ~/.linuxbrew/Library/Taps/homebrew
+
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/fzh/.zshrc
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+安装lazygit
+brew install lazygit
+
+git clone https://aur.archlinux.org/lazygit.git
+makepkg -si
+
+解决go包管理代理网址无法访问
+go: github.com/StackExchange/wmi@v0.0.0-20190523213315-cbe66965904d: Get "https://proxy.golang.org/github.com/%21stack%21exchange/wmi/@v/v0.0.0-20190523213315-cbe66965904d.mod": dial tcp 34.64.4.17:443: i/o timeout
+
+go env -w GOPROXY=https://goproxy.cn
+
+安装delta
+https://github.com/dandavison/delta
+
+git clone https://aur.archlinux.org/git-delta-bin.git
+cd git-delta-bin
+makepkg -si
+
+在网站下载安装包后(ubuntu)
+sudo dpkg -i git-delta_0.6.0_amd64.deb
+
+#########################################################################
+强制umount
+
+sudo fuser -m /dev/sda1
+kill -9 2464
+umount /run/media/fzh/ssd_500
