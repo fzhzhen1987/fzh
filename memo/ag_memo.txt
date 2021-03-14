@@ -1,0 +1,44 @@
+sudo apt-get install silversearcher-ag
+sudo pacman -S the_silver_searcher
+ag 关键字
+ag 关键字 路径
+
+搜索含有a或b:
+ag "关键字a|关键字b"
+
+搜索字面值:-Q
+ag -Q 关键字
+在files目录搜索含 .rb 的字串 (只匹配 .rb 相当于正则式的\.rb)
+ag -Q .rb files/
+在files目录搜索含 .rb 的字串 (所有的arb,crb等)
+ag    .rb files/
+
+搜索指定文件类型:-G
+搜索文件名以py结尾的文件且包含关键字:
+ag -G py$ 关键字
+在所有文件名为 cpio.c 的文件中搜索字串 size:
+ag -G cpio.c size
+
+搜索含有单词 DHH 的所有文件，且只打印处文件名:
+ag DHH -l
+
+二次过滤:在第一次过滤的结果上再搜索关键字b:
+ag -G py$ 关键字a|ag 关键字b
+
+全词匹配:-w
+大小写敏感:-s
+
+搜索隐藏文件(根据.gitignore):--hidden
+""""""""""""""""""""""""""""""""""""""""""""""""""
+sudo apt-get install ripgrep
+sudo pacman -S ripgrep
+rg 关键字
+
+搜索字面值:-F
+搜索指定文件类型:-t (--type-list查看列表)
+搜索文件名以py结尾的文件且包含关键字:
+
+全词匹配:-w
+正则表达:-e
+
+搜索隐藏文件(根据.gitignore):--hidden
