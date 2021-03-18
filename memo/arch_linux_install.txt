@@ -331,6 +331,17 @@ quit
    export GTK_IM_MODULE=fcitx
    export QT_IM_MODULE=fcitx
    export XMODIFIERS="@im=fcitx"
+
+		更新到fcitx5:
+			卸载fcitx:	sudo pacman -Rns fcitx
+			安装fcitx5:	sudo pacman -S fcitx5-git fcitx5-pinyin-zhwiki fcitx5-pinyin-moegirl fcitx5-configtool-git fcitx5-gtk-git fcitx5-qt5-git fcitx5-chinese-addons-git
+
+	export GTK_IM_MODULE=fcitx5
+	export QT_IM_MODULE=fcitx5
+	export XMODIFIERS="@im=fcitx5"
+
+	输入法:拼音
+
 ** 安装firefox
    pacman -S firefox firefox-i18n-zh-cn
 ** 安装蓝牙
