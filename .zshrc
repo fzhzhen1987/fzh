@@ -31,7 +31,7 @@ _fzf_compgen_path() {
 
 # Use fd to generate the list for directory completion,使用cd只查找目录
 _fzf_compgen_dir() {
-  fd --type d --hidden --follow -E ".git" -E "node_modules" .
+  fd --type d --hidden --follow -E ".git" -E "node_modules" . /home /etc
 }
 #############################################################
 # Set list of themes to pick from when loading at random
