@@ -19,7 +19,7 @@ export LANG=en_US.UTF-8
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
 #fzf
-export FZF_DEFAULT_OPTS='--height 90% --bind=ctrl-e:toggle+down,ctrl-k:preview-up,ctrl-j:preview-down --preview "[[ $(file --mime {}) =~ binary ]] && echo {} is a binary file || (ccat --color=always {} || highlight -O ansi -l {} || cat {}) 2> /dev/null | head -500" --preview-window=down'
+export FZF_DEFAULT_OPTS='--no-mouse --height 90% --bind=ctrl-e:toggle+down,ctrl-k:preview-up,ctrl-j:preview-down --preview "[[ $(file --mime {}) =~ binary ]] && echo {} is a binary file || (ccat --color=always {} || highlight -O ansi -l {} || cat {}) 2> /dev/null | head -500" --preview-window=down'
 export FZF_DEFAULT_COMMAND='fd --hidden --follow -E ".git" -E "node_modules" . '
 export FZF_COMPLETION_TRIGGER='\'
 
