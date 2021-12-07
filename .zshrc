@@ -139,6 +139,10 @@ alias q="exit"
 
 alias nv="nvim"
 alias lg="lazygit"
+alias tnew="tmux new -s"
+alias trename="tmux rename-session -t"
+alias tattach="tmux attach -t"
+alias tkill="tmux kill-session -t"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/snap/bin
