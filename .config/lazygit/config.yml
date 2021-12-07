@@ -10,7 +10,7 @@ git:
 gui:
   commitlength:
     show: true
-  mouseevents: false
+  mouseEvents: false
   scrollheight: 2
   scrollpastbottom: true
   theme:
