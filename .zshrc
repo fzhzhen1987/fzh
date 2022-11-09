@@ -134,7 +134,7 @@ alias diff="colordiff"
 alias e="emacs -nw"
 alias rg="rg --color=always --no-heading --smart-case -g !.git"
 alias ag="ag --color --smart-case --ignore .git"
-alias ra='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
+# alias ra='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
 alias q="exit"
 
 alias nv="nvim"
@@ -149,6 +149,7 @@ export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/bin/site_perl:/usr/bin/
 
 source ~/.config/zsh/key-bindings.zsh
 source ~/.config/zsh/completion.zsh
+source ~/.config/lf/lf_config
 
 export VISUAL=nvim
 export EDITOR=nvim
